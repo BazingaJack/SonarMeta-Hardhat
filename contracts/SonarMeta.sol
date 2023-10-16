@@ -13,7 +13,7 @@ import "./utils/Counters.sol";
 import "./Union.sol";
 import "hardhat/console.sol";
 
-contract SonarMeta is Ownable, Storage, ReentrancyGuard, Random {
+contract SonarMeta is Ownable, Storage, ReentrancyGuard {
 
     using Counters for Counters.Counter;
     Counters.Counter private _accountIndex;
@@ -27,6 +27,7 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard, Random {
     address private ipnftImpAddr;
     address private erc6551AccountImpAddr;
     address private unionImpAddr;
+    address private randomGenImpAddr = 0xb54EA2AA87d28a3651de7aF26e33d4Ab2e2547BA;
     // address payable sonarMetaAccount;
 
     struct BorrowInfo {
@@ -52,6 +53,7 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard, Random {
             erc6551AccountImpAddr = _erc6551AccountImplAddr;
             erc4907Factory = ERC4907(_erc4907ImplAddr);
             unionContract = Union(_unionImpAddr);
+            randomGenerator = Random(randomGenImpAddr);
             ipnftImpAddr = _ipNFTAddr;
             maxUnion = 50;
             incubatePeriod = 6 * monthToSeconds;
@@ -59,8 +61,11 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard, Random {
             settlementInterval = monthToSeconds;
     }
 
+    function getRandom(uint256 maxNum) public returns (uint256) {
+        uint256 requestId = randomGenerator.requestRandomWords();
+        return (randomGenerator.getRandomNum(requestId) % maxNum);
+    }
     
-
     function createIPFromExistNFT(address _tokenContract,address _ipOwnerAddr,uint256 _chainId,uint256 _tokenId)
     public nonReentrant returns(address){
         governance.requireGovernor(msg.sender);

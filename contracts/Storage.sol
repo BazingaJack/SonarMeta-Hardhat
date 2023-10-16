@@ -7,6 +7,7 @@ import "./thirdparty/ERC6551Registry.sol";
 import "./utils/Governance.sol";
 import "./IPNFT.sol";
 import "./Union.sol";
+import "./utils/Random.sol";
 
 contract Storage {
     Governance internal governance;
@@ -18,4 +19,6 @@ contract Storage {
     ERC4907 internal erc4907Factory;
 
     Union internal unionContract;
+
+    Random internal randomGenerator;
 }

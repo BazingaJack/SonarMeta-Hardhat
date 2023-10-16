@@ -46,7 +46,7 @@ async function main() {
         Union: union.address,
         ERC6551Account: erc6551Account.address,
         ERC6551Registry: erc6551Registry.address,
-        ERC4907: erc4907.address
+        ERC4907: erc4907.address,
     }
     console.log(addresses)
     fs.writeFile(`address-${network}.json`, JSON.stringify(addresses, undefined, 4), err => {
