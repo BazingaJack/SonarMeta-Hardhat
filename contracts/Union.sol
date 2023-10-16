@@ -29,7 +29,7 @@ contract Union is Ownable{
     event addMemberExisted(uint256 memberId);
     event deleteMemberSuccess(uint256 memberId);
 
-    constructor() Ownable(owner()){
+    constructor() Ownable(msg.sender){
         _nextMemberId = 1;
         minMember = 3;
         updateInterval = 30 * 24 * 60 * 60;
@@ -38,7 +38,7 @@ contract Union is Ownable{
         totalMember = 0;
     }
 
-    function addMember(address _memberAddr,uint _weight) public onlyOwner() {
+    function addMember(address _memberAddr,uint _weight) public {
         if(existed[_memberAddr] == 0){
             Member memory m = Member(_nextMemberId, _memberAddr, _weight, block.timestamp,true);
             members[_nextMemberId++] = m;
@@ -59,7 +59,7 @@ contract Union is Ownable{
         }
     }
 
-    function deleteMember(address _memberAddr) public onlyOwner() {
+    function deleteMember(address _memberAddr) public {
         require(existed[_memberAddr] != 0, "DeleteMember Failed: This address is not a member.");
         require(members[existed[_memberAddr]].state == true, "DeleteMember Failed: This address is not active.");
         uint256 memberId = existed[_memberAddr];

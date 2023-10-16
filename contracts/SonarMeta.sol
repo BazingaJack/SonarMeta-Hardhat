@@ -11,6 +11,7 @@ import "./utils/ReentrancyGuard.sol";
 import "./utils/Random.sol";
 import "./utils/Counters.sol";
 import "./Union.sol";
+import "hardhat/console.sol";
 
 contract SonarMeta is Ownable, Storage, ReentrancyGuard, Random {
 
@@ -26,7 +27,7 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard, Random {
     address private ipnftImpAddr;
     address private erc6551AccountImpAddr;
     address private unionImpAddr;
-    address payable sonarMetaAccount;
+    // address payable sonarMetaAccount;
 
     struct BorrowInfo {
         uint256 tokenId;
@@ -43,7 +44,7 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard, Random {
         address _erc6551AccountImplAddr,
         address _ipAccountRegistryAddr,
         address _erc4907ImplAddr,
-        address _unionImpAddr)Ownable(owner()){
+        address _unionImpAddr)Ownable(msg.sender){
             initializeReentrancyGuard();
             governance = Governance(owner());
             ipnft = IPNFT(_ipNFTAddr);
@@ -61,7 +62,7 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard, Random {
     
 
     function createIPFromExistNFT(address _tokenContract,address _ipOwnerAddr,uint256 _chainId,uint256 _tokenId)
-    public nonReentrant onlyOwner returns(address){
+    public nonReentrant returns(address){
         governance.requireGovernor(msg.sender);
         require(_ipOwnerAddr != address(0), "Mint error: destination address can't be zero.");
         address ipAccountAddr =  ipAccountRegistry.createAccount(
@@ -75,9 +76,8 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard, Random {
     }
 
     function createNewIP(string memory _uri,address _ipOwnerAddr, uint256 _chainId)
-    public nonReentrant onlyOwner returns(address){
+    public nonReentrant returns(address){
         //mint ERC721 token 
-        governance.requireGovernor(msg.sender);
         require(_ipOwnerAddr != address(0), "Mint error: destination address can't be zero.");
         uint256 ipNFTTokenId = ipnft.mint(_ipOwnerAddr, _uri);
         //mint ERC6551 account
@@ -95,13 +95,13 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard, Random {
     }
 
     function recreate(string memory _newIPURI, address _ip6551AccountAddr, uint256 _chainId)
-    public nonReentrant onlyOwner returns (address){
+    public nonReentrant returns (address){
         //根据已有NFT进行二创
         //mint ERC6551 account
         return createNewIP(_newIPURI, _ip6551AccountAddr, _chainId);
     }
 
-    function mint4907Token(address _accountAddr,uint256 _tokenType) public nonReentrant onlyOwner{
+    function mint4907Token(address _accountAddr,uint256 _tokenType) public nonReentrant {
         uint256 tokenId = _ERC4907TokenIndex.current();
         erc4907Factory.mint(_accountAddr, tokenId);
         BorrowInfo memory borrowInfo = BorrowInfo(tokenId,address(0),block.timestamp,_tokenType);
@@ -109,14 +109,14 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard, Random {
     }
     
     function grantToUnion(address _accountAddr,address _unionAddr,uint256 _tokenId,uint256 _expires)
-    public nonReentrant onlyOwner{
+    public nonReentrant{
         require(unionContract.checkMemberNum(), "Grant Error: Member num hasn't reach the min.");
         BorrowInfo storage borrowInfo = accountInfo[_accountAddr][_tokenId];
         borrowInfo.expires = _expires;
         borrowInfo.user = _unionAddr;
     }
 
-    function dividendToUnion(uint256 _amount,address _accountAddr,uint256 _tokenId) public payable nonReentrant onlyOwner{
+    function dividendToUnion(uint256 _amount,address _accountAddr,uint256 _tokenId) public payable nonReentrant{
         address user = accountInfo[_accountAddr][_tokenId].user;
         uint256 expires = accountInfo[_accountAddr][_tokenId].expires;
         uint256 tokenType = accountInfo[_accountAddr][_tokenId].tokenType;
@@ -133,8 +133,8 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard, Random {
             _amount -= transferAmount;
             memberAddress.transfer(transferAmount);
         }
-        if(_amount > 0){
-            sonarMetaAccount.transfer(_amount);
-        }
+        // if(_amount > 0){
+        //     sonarMetaAccount.transfer(_amount);
+        // }
     }
 }

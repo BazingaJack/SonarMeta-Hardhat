@@ -5,6 +5,7 @@ import "../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
 import "../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "./utils/Counters.sol";
+import "hardhat/console.sol";
 
 contract IPNFT is ERC721, ERC721URIStorage, Ownable {
     using Counters for Counters.Counter;
@@ -16,7 +17,7 @@ contract IPNFT is ERC721, ERC721URIStorage, Ownable {
         Ownable(address(this))
     {}
 
-    function mint(address to, string memory uri) public onlyOwner returns(uint256) {
+    function mint(address to, string memory uri) public returns(uint256) {
         require(to != address(0), "Mint error: destination address can't be zero.");
         uint256 tokenId = _index.current();
         _safeMint(to, tokenId);
