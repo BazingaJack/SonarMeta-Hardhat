@@ -1,1 +1,1 @@
-"# sonarmeta-hardhat" 
+# sonarmeta-hardhat
