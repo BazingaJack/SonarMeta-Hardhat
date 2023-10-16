@@ -43,10 +43,9 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard, Random {
         address _erc6551AccountImplAddr,
         address _ipAccountRegistryAddr,
         address _erc4907ImplAddr,
-        address _unionImpAddr,
-        address _initialOwner)Ownable(_initialOwner){
+        address _unionImpAddr)Ownable(owner()){
             initializeReentrancyGuard();
-            governance = Governance(_initialOwner);
+            governance = Governance(owner());
             ipnft = IPNFT(_ipNFTAddr);
             ipAccountRegistry = ERC6551Registry(_ipAccountRegistryAddr);
             erc6551AccountImpAddr = _erc6551AccountImplAddr;
