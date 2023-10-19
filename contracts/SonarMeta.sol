@@ -18,6 +18,7 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard {
     using Counters for Counters.Counter;
     Counters.Counter private _accountIndex;
     Counters.Counter private _ERC4907TokenIndex;
+    Counters.Counter private _unionIndex;
 
     uint256 constant monthToSeconds = 30 * 24 * 60 * 60;
     uint256 immutable maxUnion;
@@ -28,6 +29,10 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard {
     address private erc6551AccountImpAddr;
     address private unionImpAddr;
     address private randomGenImpAddr = 0xb54EA2AA87d28a3651de7aF26e33d4Ab2e2547BA;
+
+    mapping (uint256 => address) public unionAddrs;
+    mapping (uint256 => address) public unionOwners;
+
     // address payable sonarMetaAccount;
 
     struct BorrowInfo {
@@ -44,15 +49,13 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard {
         address _ipNFTAddr,
         address _erc6551AccountImplAddr,
         address _ipAccountRegistryAddr,
-        address _erc4907ImplAddr,
-        address _unionImpAddr)Ownable(msg.sender){
+        address _erc4907ImplAddr)Ownable(msg.sender){
             initializeReentrancyGuard();
             governance = Governance(owner());
             ipnft = IPNFT(_ipNFTAddr);
             ipAccountRegistry = ERC6551Registry(_ipAccountRegistryAddr);
             erc6551AccountImpAddr = _erc6551AccountImplAddr;
             erc4907Factory = ERC4907(_erc4907ImplAddr);
-            unionContract = Union(_unionImpAddr);
             randomGenerator = Random(randomGenImpAddr);
             ipnftImpAddr = _ipNFTAddr;
             maxUnion = 50;
@@ -81,7 +84,7 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard {
     }
 
     function createNewIP(string memory _uri,address _ipOwnerAddr, uint256 _chainId)
-    public nonReentrant returns(address){
+    public nonReentrant returns(address,uint256){
         //mint ERC721 token 
         require(_ipOwnerAddr != address(0), "Mint error: destination address can't be zero.");
         uint256 ipNFTTokenId = ipnft.mint(_ipOwnerAddr, _uri);
@@ -91,34 +94,37 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard {
             _chainId,
             ipnftImpAddr,
             ipNFTTokenId,
-            getRandom(100000),
+            10000,
             "");
         uint256 accountId = _accountIndex.current();
         erc6551Acccounts[accountId] = ipAccountAddr;
         _accountIndex.increment();
-        return ipAccountAddr;
+        return (ipAccountAddr,ipNFTTokenId);
     }
 
     function recreate(string memory _newIPURI, address _ip6551AccountAddr, uint256 _chainId)
-    public nonReentrant returns (address){
+    public nonReentrant returns (address,uint256){
         //根据已有NFT进行二创
         //mint ERC6551 account
         return createNewIP(_newIPURI, _ip6551AccountAddr, _chainId);
     }
 
-    function mint4907Token(address _accountAddr,uint256 _tokenType) public nonReentrant {
+    // function mint4907Token(address _accountAddr,uint256 _tokenType) public nonReentrant returns (uint256){
+    //     uint256 tokenId = _ERC4907TokenIndex.current();
+    //     erc4907Factory.mint(_accountAddr, tokenId);
+    //     BorrowInfo memory borrowInfo = BorrowInfo(tokenId,address(0),block.timestamp,_tokenType);
+    //     accountInfo[_accountAddr][tokenId] = borrowInfo;
+    //     return tokenId;
+    // }
+    
+    function grantToUnion(address _accountAddr,uint256 _unionId,uint256 _tokenType,uint256 _expires)
+    public nonReentrant{
+        Union u = Union(unionAddrs[_unionId]);
+        require(u.checkMemberNum(), "Grant Error: Member num hasn't reach the min.");
         uint256 tokenId = _ERC4907TokenIndex.current();
         erc4907Factory.mint(_accountAddr, tokenId);
-        BorrowInfo memory borrowInfo = BorrowInfo(tokenId,address(0),block.timestamp,_tokenType);
+        BorrowInfo memory borrowInfo = BorrowInfo(tokenId,unionAddrs[_unionId],_expires,_tokenType);
         accountInfo[_accountAddr][tokenId] = borrowInfo;
-    }
-    
-    function grantToUnion(address _accountAddr,address _unionAddr,uint256 _tokenId,uint256 _expires)
-    public nonReentrant{
-        require(unionContract.checkMemberNum(), "Grant Error: Member num hasn't reach the min.");
-        BorrowInfo storage borrowInfo = accountInfo[_accountAddr][_tokenId];
-        borrowInfo.expires = _expires;
-        borrowInfo.user = _unionAddr;
     }
 
     function dividendToUnion(uint256 _amount,address _accountAddr,uint256 _tokenId) public payable nonReentrant{
@@ -141,5 +147,22 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard {
         // if(_amount > 0){
         //     sonarMetaAccount.transfer(_amount);
         // }
+    }
+
+    function createNewUnion() public nonReentrant returns (address,uint256){
+        uint256 unionId = _unionIndex.current();
+        Union newUnion = new Union();
+        address unionAddr = address(newUnion);
+        unionAddrs[unionId] = unionAddr;
+        unionOwners[unionId] = msg.sender;
+        _unionIndex.increment();
+        return (unionAddr,unionId);
+    }
+
+    function addMemberToUnion(uint256 unionId,address memberAddr,uint256 weight) public {
+        require(unionOwners[unionId] == msg.sender,"Error: Only union creator can add member to union.");
+        address unionAddr = unionAddrs[unionId];
+        Union u = Union(unionAddr);
+        u.addMember(memberAddr, weight);
     }
 }

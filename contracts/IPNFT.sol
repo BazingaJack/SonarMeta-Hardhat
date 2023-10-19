@@ -37,10 +37,6 @@ contract IPNFT is ERC721, ERC721URIStorage, Ownable {
         return super.tokenURI(tokenId);
     }
 
-    function getTokenURI(uint256 tokenId) public view returns(string memory) {
-        return tokenURI(tokenId);
-    }
-
     function supportsInterface(bytes4 interfaceId)
         public
         view

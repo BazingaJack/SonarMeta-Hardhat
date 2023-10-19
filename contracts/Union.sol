@@ -7,7 +7,6 @@ import "../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
 contract Union is Ownable{
 
     uint256 public _nextMemberId;
-
     uint256 public minMember;
     uint256 public updateInterval;
     uint256 public dividendInterval;
@@ -31,7 +30,7 @@ contract Union is Ownable{
 
     constructor() Ownable(msg.sender){
         _nextMemberId = 1;
-        minMember = 3;
+        minMember = 1;
         updateInterval = 30 * 24 * 60 * 60;
         dividendInterval = updateInterval;
         totalWeight = 50;

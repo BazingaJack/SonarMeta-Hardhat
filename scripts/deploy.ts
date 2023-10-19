@@ -12,10 +12,10 @@ async function main() {
     const IPNFT = await ethers.getContractFactory("IPNFT");
     const ipnft = await IPNFT.deploy('IP Token', 'IPT');
     await ipnft.deployed();
-    console.log('Deploy Union Contract...')
-    const Union = await ethers.getContractFactory("Union");
-    const union = await Union.deploy();
-    await union.deployed();
+    // console.log('Deploy Union Contract...')
+    // const Union = await ethers.getContractFactory("Union");
+    // const union = await Union.deploy();
+    // await union.deployed();
     console.log('Deploy ERC6551Account...')
     const ERC6551Account = await ethers.getContractFactory("ERC6551Account");
     const erc6551Account = await ERC6551Account.deploy();
@@ -36,14 +36,13 @@ async function main() {
     // deploy main contract
     console.log('Deploy SonarMeta...')
     const SonarMeta = await ethers.getContractFactory("SonarMeta");
-    const sonarmeta = await SonarMeta.deploy(ipnft.address, erc6551Account.address, erc6551Registry.address, erc4907.address, union.address);
+    const sonarmeta = await SonarMeta.deploy(ipnft.address, erc6551Account.address, erc6551Registry.address, erc4907.address);
 
     // save the addresses
     const addresses = {
         main: sonarmeta.address,
         governance: governance.address,
         IPNFT: ipnft.address,
-        Union: union.address,
         ERC6551Account: erc6551Account.address,
         ERC6551Registry: erc6551Registry.address,
         ERC4907: erc4907.address,
