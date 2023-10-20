@@ -45,4 +45,10 @@ contract IPNFT is ERC721, ERC721URIStorage, Ownable {
     {
         return super.supportsInterface(interfaceId);
     }
+
+    function getOwner(uint256 tokenId) public view returns (uint256,address) {
+        address ownerAddr = ownerOf(tokenId);
+        return (tokenId,ownerAddr);
+    }
+    
 }

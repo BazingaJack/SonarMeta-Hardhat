@@ -165,4 +165,9 @@ contract SonarMeta is Ownable, Storage, ReentrancyGuard {
         Union u = Union(unionAddr);
         u.addMember(memberAddr, weight);
     }
+
+    function getUnionById(uint256 unionId) public view returns(address) {
+        return unionAddrs[unionId];
+    }
+
 }
